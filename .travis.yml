@@ -9,6 +9,12 @@ addons:
     organization: "gopaldas"
     token:
       secure: "ppggF0E96NcPrPVrRQLYtnYa+pN+mAY4LFqsIyK08R+PZ8s6x6kD291b6Tz2zWfGxs+Wv98yQUXQm0b6iE8bWJB0IiqHtev3SRPhF8XkxmLjH89JJgzI62ePByw0KImtQCztOD1kZo8nM1JitEToHqXSfpU+tm984EgGNNipOV4RoX+FW51Vsad4DKPRck9koMFbUG5hakFWjgIZP+MWtZqmvRpJJ9+vef4lp8I+xqsQivq5mfjW6q4LooUbsSFEtmTOmfInFHLYKTnrhd4Ifln1cwcGYBJybzY6D+ggMeBfTAUlvPrlmLy5L3kslhc5I7OGQ87sFlZG+etO9Ilm+oji/6EoZCERnWUbKOxEOZk4wDhinrFPYGl1UVpmXtujMSZgHz5ihIFdfZCKSSyXY+8LLGVgycT+Nnrprthi1RulhxG1EAVVuW7y6AC8x4NLZyj5s2pNUtfBM2f6J6Ch+LugJiQ0HX4bL83AHhsvcdl7FW5emBr1iD4xKcSrmvzEzjbdoQi+Hz9BLQUiRWcRSKiZj8KwIp0zfxPFHYV7MgaSlO2FANLGEwAdIfGX3Jd2Qr9OSl8eope4ovPtFsPIkvFcqxz+E97NL/NyyQfBtcTdUnmCmVU5LRxjfRMOxKjIMCh1m4mGgJTOaDHrC2qHwZlrqQ2zxCbGzb0TmBlCz18="
+before_script:
+  - wget https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+  - tar xvzf oc.tar.gz
+  - mv oc /usr/bin
+  - oc login --token= $openshift_token --server=https://c100-e.us-east.containers.cloud.ibm.com:32689
+
 
 script:
   # the following command line builds the project, runs the tests with coverage and then execute the SonarCloud analysis
@@ -16,3 +22,8 @@ script:
 script:
   - python -m pytest -v
   - sonar-scanner
+  - oc set build-hook bc/pythonapp --post-commit --script="echo Hello from build hook"
+  - oc start-build bc/pythonapp
+  - oc logs -f bc/pythonapp
+  - oc set build-hook bc/pythonapp --post-commit --script="exit 1"
+  - oc get events
